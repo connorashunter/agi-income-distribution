@@ -8,7 +8,7 @@ const M = require("./model.json");
 const F = require("./micro_fracs.json");
 const S = microInit(D, M);
 const CANON = { housing: "flat", biz: "absorb", penEq: 1.0, penWage: "fixed",
-                creditsDie: false };
+                creditsDie: false, neutral: process.env.G1_NEUTRAL || "prop" };
 
 const INK = "#0b0b0b", MUT = "#898781", GRID = "#e1e0d9", AXIS = "#c3c2b7";
 // bottom-of-stack -> top
@@ -95,10 +95,18 @@ function layers15(S, r, extra) {
 }
 
 function stackChart(fileBase, title, opts) {
-  let basePost = null;
+  title = process.env.G1_TITLE || title;
+  let baseCnt = null;
   if (process.env.G1_SAFETYNET) {
+    // baseline COUNTABLE income anchors the take-up function, so claiming
+    // behaviour does not depend on the collective-spending convention
     const rb2 = runMicro(S, { ...CANON, labourFrac: 1 });
-    basePost = Float64Array.from(rb2.post);
+    const C0 = rb2.comp, pz0 = x => Math.max(x, 0);
+    baseCnt = new Float64Array(S.n);
+    for (let i = 0; i < S.n; i++)
+      baseCnt[i] = pz0(C0.lab[i] * (1 - F.labPenF[i] - F.labHeaF[i]))
+        + pz0(C0.pben[i] + C0.pcon[i]) + pz0(C0.cash[i]) + pz0(C0.biz[i])
+        + pz0(C0.hou[i]) * F.rentF[i] + 0.2 * pz0(C0.equ[i]) + pz0(C0.intr[i]);
   }
   let baseTops = null;
   if (process.env.G1_GHOST) {
@@ -153,13 +161,22 @@ function stackChart(fileBase, title, opts) {
       const h1 = i => (((i + 1) * 2654435761) >>> 0) / 4294967296;
       const h2 = i => (((i + 1) * 2246822519) >>> 0) / 4294967296;
       let newM = 0, newS = 0, cSN = 0;
+      const C2 = r.comp, pz = x => Math.max(x, 0);
       for (let i = 0; i < n; i++) {
-        const bb = Math.max(basePost[i], 0);
-        // eligibility tested on income including any UI just received
-        if (post2[i] < MEDI_THRESH && PROG.medicaid[i] <= 0 && h1(i) < takeM(bb)) {
+        const bb = baseCnt[i];
+        // eligibility tested on COUNTABLE income, approximating a MAGI/gross
+        // test: cash wages + benefit cheques + UI + cash transfers + business
+        // + rental + taxable dividends (~20% of equity income) + interest.
+        // Excludes imputed rent, collective-spending allocations, in-kind
+        // values, and pension-fund accruals - none of which a caseworker sees.
+        const cnt = pz(C2.lab[i] * (1 - F.labPenF[i] - F.labHeaF[i]))
+          + pz(C2.pben[i] + C2.pcon[i]) + exUI[i] + pz(C2.cash[i])
+          + pz(C2.biz[i]) + pz(C2.hou[i]) * F.rentF[i]
+          + 0.2 * pz(C2.equ[i]) + pz(C2.intr[i]);
+        if (cnt < MEDI_THRESH && PROG.medicaid[i] <= 0 && h1(i) < takeM(bb)) {
           exMedi[i] = mAvg; post2[i] += mAvg; newM += wgt[i]; cSN += mAvg * wgt[i];
         }
-        if (post2[i] < SNAP_THRESH && PROG.snap[i] <= 0 && h2(i) < takeS(bb)) {
+        if (cnt < SNAP_THRESH && PROG.snap[i] <= 0 && h2(i) < takeS(bb)) {
           exCash[i] = sAvg; post2[i] += sAvg; newS += wgt[i]; cSN += sAvg * wgt[i];
         }
       }
