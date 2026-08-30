@@ -7,7 +7,7 @@ const D = require("./micro_data.json");
 const M = require("./model.json");
 const S = microInit(D, M);
 const CANON = { housing: "flat", biz: "absorb", penEq: 1.0, penWage: "fixed",
-                creditsDie: false };
+                creditsDie: false, neutral: process.env.G1_NEUTRAL || "prop" };
 
 const years = [];
 for (let t = 0; t <= 5; t++) {

@@ -478,7 +478,7 @@ else if (SCEN === "nolab")
 else if (SCEN === "medrestore")
   stackChart(process.env.G1_OUT || "essay_g_medrestore",
              "Labour at zero, the economy grown 1.9×: the median restored",
-             { labourFrac: 0, mult: 1.92 });
+             { labourFrac: 0, mult: process.env.G1_MULT ? +process.env.G1_MULT : 1.92 });
 else if (SCEN === "uihealth")
   stackChart(process.env.G1_OUT || "essay_g4",
              "One transition year: UI plus expanded Medicaid & SNAP",

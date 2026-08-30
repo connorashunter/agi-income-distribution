@@ -65,6 +65,41 @@ each generator (`CANON`). Every contested choice is a switch:
 If you disagree with an assumption, flip the switch and rerun — that is the
 point of publishing this.
 
+## Distributionally equal instead of neutral
+
+The Piketty-Saez-Zucman default allocates collective spending in proportion
+to income ("distributionally neutral"). The other defensible reading splits
+it equally per adult - and it changes the story a lot: the no-labour shock
+cuts average welfare by ~26% instead of ~47%, the five-year transition turns
+broadly positive, and "99% of people made whole" goes from impossible to
+reachable at ~4.4x growth, because an equal share of a growing collective
+pot reaches people who own no capital.
+
+Every generator accepts `G1_NEUTRAL=flat` to rerun under the equal-split
+convention, e.g.
+
+```
+G1_NEUTRAL=flat node gen_essay_stacks3.js
+G1_NEUTRAL=flat G1_SCEN=nolab G1_GHOST=1 node gen_essay_stacks3.js
+```
+
+Two figures (`gen_ladder.js`, `gen_phasemap5.js`) plot precomputed growth
+multiples rather than computing them at runtime. To regenerate those under
+the equal-split convention (or any other assumption change), first run
+
+```
+G1_NEUTRAL=flat node compute_targets.js
+```
+
+which bisects the milestone multiples and prints ready-to-paste `G1_ROWS`
+and `G1_CONTOURS` values for the two chart scripts.
+
+Other chart flags: `G1_TITLE` and `G1_OUT` override any chart's title and
+output name; `G1_MULT` sets the growth multiple of the median-restored
+scenario; `G1_NOISO=1` hides the iso-median contours on the trajectories
+map; `G1_PATHMODE=years` colours the transition-path chart by year instead
+of by outcome.
+
 ## Rebuilding the data from source
 
 The derived JSONs (`micro_data.json`, `micro_fracs.json`, `micro_prog.json`)

@@ -2,7 +2,7 @@
 // buy back each milestone. Horizontal bars, log x-axis, "never" rows hatched.
 const fs = require("fs");
 
-const ROWS = [
+const ROWS = process.env.G1_ROWS ? JSON.parse(process.env.G1_ROWS) : [
   ["Median income restored", 1.92],
   ["EDEI (average welfare) restored", 1.95],
   ["25th-percentile income restored", 2.52],
@@ -19,7 +19,7 @@ const x0 = 320, y0 = 64, w = 620, rowH = 44, W = 1030;
 const XMAX = 22, axisY = y0 + ROWS.length * rowH + 8;
 const xOf = m => x0 + w * (m - 1) / (XMAX - 1);
 
-let o = `<text x="${(x0 + w / 2 - 90).toFixed(0)}" y="30" text-anchor="middle" font-size="17" font-weight="700" fill="${INK}">What growth has to buy back</text>`;
+let o = `<text x="${(x0 + w / 2 - 90).toFixed(0)}" y="30" text-anchor="middle" font-size="17" font-weight="700" fill="${INK}">${process.env.G1_TITLE || "What growth has to buy back"}</text>`;
 for (const t of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20]) {
   const x = xOf(t);
   o += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${y0 - 12}" y2="${axisY}" stroke="${t === 1 ? "#b8b6ac" : "#eceae2"}"/>`;
@@ -49,5 +49,5 @@ const H = axisY + 58;
 const html = `<!doctype html><meta charset="utf-8">
 <body style="margin:0;background:#fcfcfb;font-family:system-ui,'Segoe UI',sans-serif">
 <svg id="c" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fcfcfb">${o}</svg></body>`;
-fs.writeFileSync("essay_g_ladder.html", html);
+fs.writeFileSync((process.env.G1_OUT || "essay_g_ladder") + ".html", html);
 console.log("written");

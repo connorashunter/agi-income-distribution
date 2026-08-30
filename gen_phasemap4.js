@@ -7,7 +7,7 @@ const D = require("./micro_data.json");
 const M = require("./model.json");
 const S = microInit(D, M);
 const CANON = { housing: "flat", biz: "absorb", penEq: 1.0, penWage: "fixed",
-                creditsDie: false };
+                creditsDie: false, neutral: process.env.G1_NEUTRAL || "prop" };
 
 const cache = new Map();
 function MED(mult, disp) {
@@ -36,7 +36,8 @@ function contour(target) {
   return pts;
 }
 const FRONT = contour(baseMed);
-const ISO = [50e3, 55e3, 65e3, 70e3].map(v => ({ v, pts: contour(v) }));
+const ISOV = [-10e3, -5e3, 5e3, 10e3].map(d => Math.round((baseMed + d) / 5e3) * 5e3);
+const ISO = process.env.G1_NOISO ? [] : ISOV.map(v => ({ v, pts: contour(v) }));
 
 const TRAJ = [
   ["Fast takeoff, fast growth (25pt/yr · 25%/yr)", 0.25, 0.25, 14],
@@ -53,7 +54,7 @@ const x0 = 148, y0 = 66, w = 640, h = 470, W = 1120, H = 660;
 const MMAX = 3.2;
 const xOf = d => x0 + d * w;
 const yOf = m => y0 + h * (1 - Math.log(m) / Math.log(MMAX));
-let out = `<text x="${x0 + w / 2}" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="${INK}">Staying ahead of the frontier</text>
+let out = `<text x="${x0 + w / 2}" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="${INK}">Staying ahead of the frontier${process.env.G1_NEUTRAL === "flat" ? " — equal collective spending" : ""}</text>
 <text x="${x0 + w / 2}" y="50" text-anchor="middle" font-size="12" fill="${MUT}">each dot = one year of a transition</text>`;
 for (const m of [1, 1.5, 2, 2.5, 3]) {
   const y = yOf(m);
@@ -130,5 +131,5 @@ out += `<circle cx="${x0 + 352}" cy="${ly}" r="6" fill="${BAD}"/><text x="${x0 +
 const html = `<!doctype html><meta charset="utf-8">
 <body style="margin:0;background:#fcfcfb;font-family:system-ui,'Segoe UI',sans-serif">
 <svg id="c" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fcfcfb">${out}</svg></body>`;
-fs.writeFileSync("essay_g_phasemap.html", html);
+fs.writeFileSync((process.env.G1_OUT || "essay_g_phasemap") + ".html", html);
 console.log("done,", cache.size, "engine runs");

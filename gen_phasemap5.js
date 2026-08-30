@@ -5,7 +5,7 @@ const fs = require("fs");
 
 // end-state total-income multiples for each end-state median (computed from the
 // micro engine under canonical assumptions: penEq 1.0, SS held, credits kept)
-const CONTOURS = [
+const CONTOURS = process.env.G1_CONTOURS ? JSON.parse(process.env.G1_CONTOURS) : [
   { v: "$45k", m: 1.400, col: "#d99000" },
   { v: "$60k (2019 median)", m: 1.921, col: "#0b0b0b", bold: true },
   { v: "$90k", m: 2.974, col: "#0ca30c" },
@@ -21,7 +21,7 @@ const GMIN = 0.01, GMAX = 3.0;   // 1% .. 300% per year
 const xOf = t => x0 + w * (t - TMIN) / (TMAX - TMIN);
 const yOf = g => axisY - h * Math.log(g / GMIN) / Math.log(GMAX / GMIN);
 
-let o = `<text x="${x0 + w / 2}" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="${INK}">How fast must the pie grow?</text>
+let o = `<text x="${x0 + w / 2}" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="${INK}">${process.env.G1_TITLE || "How fast must the pie grow?"}</text>
 `;
 for (const g of [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 3]) {
   const y = yOf(g);
@@ -68,5 +68,5 @@ const H = axisY + 60;
 const html = `<!doctype html><meta charset="utf-8">
 <body style="margin:0;background:#fcfcfb;font-family:system-ui,'Segoe UI',sans-serif">
 <svg id="c" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fcfcfb">${o}</svg></body>`;
-fs.writeFileSync("essay_g_phasemap2.html", html);
+fs.writeFileSync((process.env.G1_OUT || "essay_g_phasemap2") + ".html", html);
 console.log("written");

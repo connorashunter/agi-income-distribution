@@ -8,7 +8,7 @@ const D = require("./micro_data.json");
 const M = require("./model.json");
 const S = microInit(D, M);
 const CANON = { housing: "flat", biz: "absorb", penEq: 1.0, penWage: "fixed",
-                creditsDie: false };
+                creditsDie: false, neutral: process.env.G1_NEUTRAL || "prop" };
 
 const years = [];
 for (let t = 0; t <= 5; t++) {
@@ -35,7 +35,7 @@ const yOf = v => {
 };
 const xOf = p => x0 + (p + 0.5) / 100 * w;
 
-let o = `<text x="${x0 + w / 2}" y="30" text-anchor="middle" font-size="17" font-weight="700" fill="${INK}">Five years of AGI: 10% growth and 20 points of labour displacement per year</text>
+let o = `<text x="${x0 + w / 2}" y="30" text-anchor="middle" font-size="17" font-weight="700" fill="${INK}">Five years of AGI: 10% growth and 20 points of labour displacement per year${process.env.G1_NEUTRAL === "flat" ? " (equal collective spending)" : ""}</text>
 <clipPath id="cp"><rect x="${x0}" y="${y0}" width="${w}" height="${LH}"/></clipPath>`;
 for (let v = 100e3; v <= EXT + 1; v += 100e3) {
   const y = yOf(v), major = v === 1e5 || v === 1e6 || v === T3;
